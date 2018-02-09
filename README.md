@@ -1,4 +1,3 @@
-==================
 django-compositepk
 ==================
 
@@ -29,3 +28,6 @@ So it must:
       and
 
     * use the ``CompositePKManager`` as the initial manager.
+
+
+Cloned from the original repo https://bitbucket.org/smileychris/django-compositepk
