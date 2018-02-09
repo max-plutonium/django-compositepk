@@ -48,9 +48,7 @@ class CompositePKModelBase(ModelBase):
         return cls
 
 
-class CompositePKModel(models.Model):
-    __metaclass__ = CompositePKModelBase
-
+class CompositePKModel(models.Model, metaclass=CompositePKModelBase):
     class Meta:
         abstract = True
 
@@ -68,6 +66,9 @@ class CompositePKModel(models.Model):
 
     pk = property(_get_pk_val, _set_pk_val)
 
+    def __hash__(self):
+        return hash(frozenset(self.pk.items()))
+
 
 class CompositePKQuerySet(models.query.QuerySet):
 
@@ -78,6 +79,7 @@ class CompositePKQuerySet(models.query.QuerySet):
         
         The dictionary is modified inline rather than a modified copy returned.
         """
+        new_kwargs = {}
         for key, value in kwargs.items():
             if '__' in key:
                 field, remainder = key.split('__', 1)
@@ -86,10 +88,12 @@ class CompositePKQuerySet(models.query.QuerySet):
             if field != 'pk':
                 continue
             if isinstance(value, dict):
-                del kwargs['pk']
                 for pk_field in self.model._primary_keys:
-                    kwargs['%s%s' % (pk_field, remainder)] = value[pk_field]
+                    new_kwargs['%s%s' % (pk_field, remainder)] = value[pk_field]
 
+        if 'pk' in kwargs:
+            del kwargs['pk']
+        kwargs.update(new_kwargs)
 
     def filter(self, *args, **kwargs):
         """
@@ -111,7 +115,7 @@ class CompositePKQuerySet(models.query.QuerySet):
 class CompositePKManager(models.Manager):
     use_for_related_fields = True
 
-    def get_query_set(self):
+    def get_queryset(self):
         """Returns a new QuerySet object.  Subclasses can override this method
         to easily customize the behavior of the Manager.
         """
