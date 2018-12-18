@@ -11,7 +11,7 @@ guaranteed to work.
 Example usage
 =============
 
-A model with composite PK should look something like this::
+A model with composite PK should look something like this:
 
     from composite_pk import composite
 
